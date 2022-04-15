@@ -15,8 +15,19 @@ import { login, logout, selectUser } from './features/userSlice';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
-  const user = useSelector(selectUser)
   const dispatch = useDispatch()
+  var localuser = useSelector(selectUser)
+
+  if (JSON.parse(localStorage.getItem("user")))
+  {
+    localuser = JSON.parse(localStorage.getItem("user"))
+  }
+  var user = localuser
+
+  if (user && user.public_key)
+  {
+      localStorage.setItem("user", JSON.stringify(user));
+  }
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(userAuth => {

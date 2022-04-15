@@ -16,7 +16,6 @@ let web3;
 
 function ProfileScreen() {
   const user = useSelector(selectUser);
-  console.log(user)
   const dispatch = useDispatch()
   const oldRef = useRef(null)
   const newRef = useRef(null)
@@ -145,7 +144,6 @@ function ProfileScreen() {
   const linkAccount = (e) => {
     e.preventDefault()
     const nonce = generateNonce()
-    console.log(nonce)
     const public_key = publickeyRef.current.value
     try
     {
@@ -166,6 +164,7 @@ function ProfileScreen() {
   }
 
   const signout = () => {
+    localStorage.removeItem('user')
     auth.signOut()
     navigate("/")
   }
@@ -270,6 +269,14 @@ function ProfileScreen() {
                 <Row md={3} className="profileScreen__credrowright">
                 <Col md={3} className='profileScreen__labelright'>ETH Address : </Col>
                 <Col md={3}><input disabled className='profileScreen__input' type="text" value={user.public_key || ''}></input></Col>
+                </Row>
+                <Row md={3} className="profileScreen__credrowright">
+                <Col md={4} className='profileScreen__labelright'>Tokens Owned : </Col>
+                <Col md={2}><input disabled className='profileScreen__input' type="text" value={'hi'}></input></Col>
+                </Row>
+                <Row md={3} className="profileScreen__credrowright">
+                <Col md={4} className='profileScreen__labelright'>Tokens Available : </Col>
+                <Col md={2}><input disabled className='profileScreen__input' type="text" value={'hi'}></input></Col>
                 </Row>
                 </Container>
                 </div>

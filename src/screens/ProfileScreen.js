@@ -9,10 +9,14 @@ import TokenScreen from './TokenScreen'
 import firebase from 'firebase/compat/app';
 import { useNavigate } from 'react-router-dom'
 import $ from "jquery";
+import { PPUTokenABI, PPUTokenAddress, PPUTokenSaleABI, PPUTokenSaleAddress } from '../abi'
 
 const Web3 = require("web3");
 let metamaskEnabled = true;
-let web3;
+const web3 = new Web3(window.ethereum);
+
+const PPUToken = new web3.eth.Contract(PPUTokenABI,PPUTokenAddress)
+const PPUTokenSale = new web3.eth.Contract(PPUTokenSaleABI,PPUTokenSaleAddress)
 
 function ProfileScreen() {
   const user = useSelector(selectUser);
@@ -21,6 +25,9 @@ function ProfileScreen() {
   const newRef = useRef(null)
   const confirmRef = useRef(null)
   const publickeyRef = useRef(null)
+  const initialTokensRef = useRef(null)
+  const [availableTokens, setAvailableTokens] = useState(0)
+  const [ownedTokens, setOwnedTokens] = useState(0)
   const navigate = useNavigate()
 
   const getPublicKey = function()
@@ -54,7 +61,6 @@ function ProfileScreen() {
   {
     if (window.ethereum) 
     {
-      web3 = new Web3(window.ethereum);
       window.ethereum.enable()
       .then(resolve())
       .catch(reject())
@@ -198,7 +204,31 @@ function ProfileScreen() {
       }).catch(function(error) {
         alert('Please enter correct old password..')
       });
-}
+  }
+
+  const startSale = (e) => {
+    e.preventDefault()
+    const tokenAmount = initialTokensRef.current.value
+    PPUTokenSale.methods.initialTransfer(tokenAmount)
+    .send({ from: user.public_key })
+    .then(() => {window.alert('Success : Token Sale Started !!')})
+    .catch((err)=>{window.alert('Error : ' + err.message)})
+  }
+
+  PPUToken.methods.balanceOf(PPUTokenSaleAddress)
+  .call()
+  .then((result) => {
+    setAvailableTokens(result)
+  })
+
+  if (user.public_key)
+  {
+      PPUToken.methods.balanceOf(user.public_key)
+      .call()
+      .then((result) => {
+        setOwnedTokens(result)
+      })
+  }
 
   return (
     <div className='profileScreen'>
@@ -272,11 +302,20 @@ function ProfileScreen() {
                 </Row>
                 <Row md={3} className="profileScreen__credrowright">
                 <Col md={4} className='profileScreen__labelright'>Tokens Owned : </Col>
-                <Col md={2}><input disabled className='profileScreen__input' type="text" value={'hi'}></input></Col>
+                <Col md={2}><input disabled className='profileScreen__inputavailabletokens' type="text" value={ownedTokens}></input></Col>
                 </Row>
                 <Row md={3} className="profileScreen__credrowright">
                 <Col md={4} className='profileScreen__labelright'>Tokens Available : </Col>
-                <Col md={2}><input disabled className='profileScreen__input' type="text" value={'hi'}></input></Col>
+                <Col md={2}><input disabled className='profileScreen__inputavailabletokens' type="text" value={availableTokens}></input></Col>
+                </Row>
+                <h1 className='profileScreen__heading1'></h1>
+                <Row>
+                <Col md={3}><input id="initial_tokens" ref={initialTokensRef} 
+                className='profileScreen__inputinitialtokens' placeholder='Enter tokens for sale..' type="number"></input></Col>
+                <Col md={3}>
+                <button onClick={startSale} 
+                    className='profileScreen__startsale'>Start Token Sale</button>
+                </Col>
                 </Row>
                 </Container>
                 </div>

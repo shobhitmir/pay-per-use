@@ -145,6 +145,7 @@ function ProfileScreen() {
   const linkAccount = (e) => {
     e.preventDefault()
     const nonce = generateNonce()
+    console.log(nonce)
     const public_key = publickeyRef.current.value
     try
     {
@@ -203,7 +204,7 @@ function ProfileScreen() {
   return (
     <div className='profileScreen'>
         <Nav />
-        <div className='profileScreen__body'>
+        <div className='profileScreen__body left'>
             <h1 className='profileScreen__heading1'>Edit Profile</h1>
             <div className='profileScreen__info'>
                 <div className='profileScreen__details'>
@@ -257,17 +258,29 @@ function ProfileScreen() {
                 </Container>
                 </div>
             </div>
+        </div>
 
+        <div className='profileScreen__sep'></div>
 
-
-
-
-                    {/* <div className='profileScreen__tokens'>
-                    <h3>Tokens</h3>
-                    <TokenScreen />
-                    </div> */}
+        <div className='profileScreen__body right'>
+            <h1 className='profileScreen__heading1'>Token Store</h1>
+            <div className='profileScreen__info'>
+                <div className='profileScreen__details'>
+                <Container>
+                <Row md={3} className="profileScreen__credrowright">
+                <Col md={3} className='profileScreen__labelright'>ETH Address : </Col>
+                <Col md={3}><input disabled className='profileScreen__input' type="text" value={user.public_key || ''}></input></Col>
+                </Row>
+                </Container>
+                </div>
+            </div>
         </div>
     </div>
+
+    
+
+    
+    
   )
 }
 

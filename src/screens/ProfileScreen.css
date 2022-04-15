@@ -1,15 +1,38 @@
 .profileScreen {
-    height: 100vh;
     color: white;
+    height: 100vh;
 }
 
 .profileScreen__body {
-    width: 50%;
+   width: 50%;
    padding-left: 20px;
     padding-top: 5%; 
     max-width: 570px;
+    margin-top: 50px;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    overflow-x: hidden;
+    height: 100%;
 }
 
+.left {
+    left: 0;
+  }
+  
+.right {
+right: 0;
+}
+
+.profileScreen__sep {
+        border-left: 1px solid #282c2d;
+        height: 100%;
+        position: absolute;
+        left: 50%;
+        margin-left: -3px;
+        top: 0;
+}
+  
 .profileScreen__info {
     display: flex;
 }
@@ -63,6 +86,20 @@
     padding-top: 2px;
     font-size: 20px;
 }
+
+.profileScreen__labelright
+{
+    padding-top: 2px;
+    font-size: 20px;
+}
+
+.profileScreen__credrowright
+{
+    padding-top: 5px;
+    padding-bottom: 10px;
+    width: 120%;
+}
+
 
 .profileScreen__credrow
 {

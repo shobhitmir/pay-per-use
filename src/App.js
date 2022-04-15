@@ -25,7 +25,7 @@ function App() {
         dispatch(login({
           uid : userAuth.uid,
           email: userAuth.email,
-          public_key: null
+          public_key: user?.public_key 
         }))
       }
       else

@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react'
 import { Container, Col, Row } from 'react-bootstrap'
-import { useSelector } from 'react-redux'
-import { selectUser } from '../features/userSlice'
+import { useDispatch, useSelector } from 'react-redux'
+import { login, selectUser } from '../features/userSlice'
 import { auth } from '../firebase'
 import Nav from '../Nav'
 import './ProfileScreen.css'
@@ -9,16 +9,20 @@ import TokenScreen from './TokenScreen'
 import firebase from 'firebase/compat/app';
 import { useNavigate } from 'react-router-dom'
 import $ from "jquery";
+
 const Web3 = require("web3");
+let metamaskEnabled = true;
+let web3;
 
 function ProfileScreen() {
   const user = useSelector(selectUser);
+  console.log(user)
+  const dispatch = useDispatch()
   const oldRef = useRef(null)
   const newRef = useRef(null)
   const confirmRef = useRef(null)
   const publickeyRef = useRef(null)
   const navigate = useNavigate()
-  const [metamaskEnabled,setMetamaskEnabled] = useState(false)
 
   const getPublicKey = function()
   {
@@ -31,7 +35,7 @@ function ProfileScreen() {
     .catch(
     () =>
       {
-          metamaskInstalled = false
+          metamaskEnabled = false;
       }
     )
   }
@@ -80,10 +84,84 @@ function ProfileScreen() {
               }
               else
               {
-                  metamaskInstalled = false
+                  metamaskEnabled = false;
               }
           }
       })
+  }
+
+  window.onload= getPublicKey()
+
+  function validate_user(public_address, validation_address)
+  {
+      if (public_address.toLowerCase()===validation_address)
+      {
+        dispatch(login({
+          uid : user.uid,
+          email: user.email,
+          public_key: public_address
+        }))
+      }
+      else
+      {
+          alert("Signature Verification Failed !!")
+      }
+  }
+
+  function recover_address(nonce, signature, public_address)
+  {
+      web3.eth.personal.ecRecover(nonce, signature,
+      (err,result) =>
+      {
+          if (err)
+          {
+              alert('Failed to verify.. try again later..')
+          }
+          else
+          {
+              const validation_address=result
+              validate_user(public_address, validation_address);
+          }
+      })
+  }
+
+  function sign_message(nonce,public_address)
+  {
+      web3.eth.personal.sign(nonce,public_address,
+      (err,result) =>
+      {
+          if (err)
+          {
+              alert('Failed to sign message!!')
+          }
+          else
+          {
+              const signature=result
+              recover_address(nonce,signature,public_address);
+          }
+      })
+  }
+
+  const linkAccount = (e) => {
+    e.preventDefault()
+    const nonce = generateNonce()
+    const public_key = publickeyRef.current.value
+    try
+    {
+      web3.utils.toChecksumAddress(public_key)
+    }
+    catch
+    {
+      alert('Please enter valid ethereum address..')
+    }
+    try
+    {
+      sign_message(nonce,public_key)
+    }
+    catch
+    {
+      alert('Please sign with metamask account..')
+    }
   }
 
   const signout = () => {
@@ -126,7 +204,7 @@ function ProfileScreen() {
     <div className='profileScreen'>
         <Nav />
         <div className='profileScreen__body'>
-            <h1>Edit Profile</h1>
+            <h1 className='profileScreen__heading1'>Edit Profile</h1>
             <div className='profileScreen__info'>
                 <div className='profileScreen__details'>
                 <Container>
@@ -140,7 +218,7 @@ function ProfileScreen() {
                 </Row>
                 <Row>
                 <Col md={6}>
-                <button onClick={signout} 
+                <button onClick={linkAccount} 
                     className='profileScreen__linkaccount'>Link Ethereum Account</button>
                 </Col>
                 </Row>
@@ -148,7 +226,7 @@ function ProfileScreen() {
                 </div>
             </div>
             <br/>
-                <h1></h1>
+                <h1 className='profileScreen__heading1'></h1>
                 <div className='profileScreen__info'>
                 <div className='profileScreen__details'>
                 <Container>

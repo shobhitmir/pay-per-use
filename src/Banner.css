@@ -1,18 +1,19 @@
 .banner {
     color: white;
     object-fit: contain;
-    height: 448px;
+    height: 500px;
 }
 
 .banner__contents {
     margin-left: 30px;
     padding-top: 140px;
-    height: 190px;
+    height: 425px;
 }
 
 .banner__title {
     font-size: 3rem;
     font-weight: 800;
+    padding-top: 90px;
     padding-bottom: 0.3rem;
 }
 

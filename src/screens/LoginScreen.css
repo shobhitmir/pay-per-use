@@ -66,6 +66,11 @@
     width: 150px;
     object-fit: contain;
     padding-left: 20px;
+    margin-top: 15px;
+}
+
+.loginScreen__logo:hover {
+    cursor: pointer;
 }
 
 .loginScreen__input > form > input{

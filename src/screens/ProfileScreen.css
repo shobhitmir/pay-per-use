@@ -6,7 +6,6 @@
 .profileScreen__body {
     width: 50%;
    padding-left: 20px;
-    /* margin-right: 70%; */
     padding-top: 5%; 
     max-width: 570px;
 }
@@ -28,7 +27,7 @@
     margin-bottom: 20px;
 }
 
-h4 {
+.profileScreen__h4 {
     background-color: gray;
     padding: 15px;
     font-size: 15px;
@@ -40,7 +39,7 @@ h4 {
     width: 300%;
 }
 
-input 
+.profileScreen__input 
 {
     border: none;
     background-color: gray;
@@ -49,7 +48,6 @@ input
     padding-top: 10px;
     padding-bottom: 15px;
     height: 70%;
-    margin-top: 10px;
     width: 300%;
     color: #fff;
 }
@@ -69,9 +67,9 @@ input
 .profileScreen__signOut {
     padding: 10px 20px;
     font-size: 1rem;
-    margin-top: 5%;
-    width: 100%;
+    width: 110%;
     color:#fff;
+    margin-left: 107px;
     background-color: #e50914;
     font-weight: 600;
     border: none;

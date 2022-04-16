@@ -29,10 +29,12 @@ function ProfileScreen() {
   const sendTokensRef = useRef(null)
   const sendAddressRef = useRef(null)
   const sellTokensRef = useRef(null)
+  const claimAmtRef = useRef(null)
   const [availableTokens, setAvailableTokens] = useState(0)
   const [ownedTokens, setOwnedTokens] = useState(0)
   const [soldTokens, setSoldTokens] = useState(0)
   const [tokenPrice, setTokenPrice] = useState(0)
+  const [amtCollected, setAmtCollected] = useState(0)
   const navigate = useNavigate()
 
   const getPublicKey = function()
@@ -264,6 +266,15 @@ function ProfileScreen() {
     .catch((err)=>{window.alert('Error : ' + err.message)})
   }
 
+  const claimEther = (e) => {
+    e.preventDefault()
+    const ethAmount = web3.utils.toWei(claimAmtRef.current.value,"ether");
+    PPUTokenSale.methods.getfunds(ethAmount).send({ from: (JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) })
+    .then(() => {window.alert('Success : ETH Collected !!')
+    window.location.reload(false);})
+    .catch((err)=>{window.alert('Error : ' + err.message)})
+  }
+
 
   PPUToken.methods.balanceOf(PPUTokenSaleAddress)
   .call()
@@ -291,6 +302,15 @@ function ProfileScreen() {
       .then((result) => {
         setTokenPrice(web3.utils.fromWei(result,"ether"))
       })
+
+      web3.eth.getBalance(PPUTokenSaleAddress, function(err, result) {
+        if (err) {
+          alert(err)
+        } else {
+          setAmtCollected(web3.utils.fromWei(result, "ether") + "  ETH")
+        }
+      })
+
 
   return (
     <div className='profileScreen'>
@@ -379,8 +399,12 @@ function ProfileScreen() {
                 <Col md={2}><input disabled className='profileScreen__inputavailabletokens' type="text" value={tokenPrice + "  ETH"}></input></Col>
                 </Row>
                 <h1 className='profileScreen__heading1'></h1>
-                {(JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) 
-                && admin===(JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) &&
+
+
+                {((JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) 
+                && (admin===(JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key))) ?
+                (
+                <>
                 <Row>
                 <Col md={3}><input id="initial_tokens" ref={initialTokensRef} 
                 className='profileScreen__inputinitialtokens' placeholder='Enter tokens for sale..' type="number"></input></Col>
@@ -392,9 +416,24 @@ function ProfileScreen() {
                 <button onClick={endSale} 
                     className='profileScreen__endsale'>End Token Sale</button>
                 </Col>
-                </Row>}
-                {(!(JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) 
-                || admin!=(JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key)) &&
+                </Row>
+                <h1 className='profileScreen__heading1'></h1>
+                <Row className="profileScreen__credrowright">
+                <Col md={4} className='profileScreen__labelrightamt'>Amount Collected : </Col>
+                <Col md={2}><input disabled className='profileScreen__inputavailabletokens' type="text" value={amtCollected}></input></Col>
+                </Row>
+                <Row>
+                <Col md={3}><input ref={claimAmtRef} 
+                className='profileScreen__claiminput' placeholder='Enter amount to collect..' type="number"></input></Col>
+                <Col md={3}>
+                <button onClick={claimEther} 
+                    className='profileScreen__claimethbtn'>Claim ETH</button>
+                </Col>
+                </Row>
+                </>
+                ) :
+                (
+                <>
                 <Row>
                 <Col md={3}><input id="initial_tokens" ref={buyTokensRef} 
                 className='profileScreen__inputinitialtokens' placeholder='Enter tokens to buy..' type="number"></input></Col>
@@ -402,11 +441,8 @@ function ProfileScreen() {
                 <button onClick={buyTokens} 
                     className='profileScreen__buytokensbtn'>Buy Tokens</button>
                 </Col>
-                </Row>}
-
+                </Row>
                 <h1 className='profileScreen__heading1'></h1>
-                {(!(JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) 
-                || admin!=(JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key)) &&
                 <Row>
                 <Col md={3}><input id="initial_tokens" ref={sellTokensRef} 
                 className='profileScreen__inputinitialtokens' placeholder='Enter tokens to sell..' type="number"></input></Col>
@@ -414,12 +450,10 @@ function ProfileScreen() {
                 <button onClick={sellTokens} 
                     className='profileScreen__buytokensbtn'>Sell Tokens</button>
                 </Col>
-                </Row>}
+                </Row>
 
 
                 <h1 className='profileScreen__heading1'></h1>
-                {(!(JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) 
-                || admin!=(JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key)) &&
                 <Row>
                 <Col md={3}><input id="initial_tokens" ref={sendTokensRef} 
                 className='profileScreen__inputinitialtokens' placeholder='Enter tokens to send..' type="number"></input></Col>
@@ -429,7 +463,9 @@ function ProfileScreen() {
                 <button onClick={sendTokens} 
                     className='profileScreen__sendtokensbtn'>Send Tokens</button>
                 </Col>
-                </Row>}
+                </Row>
+                </>
+                )}
                 </Container>
                 </div>
             </div>

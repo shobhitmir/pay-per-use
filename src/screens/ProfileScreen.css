@@ -127,6 +127,26 @@ right: 0;
     transition: all 0.2s;
 }
 
+.profileScreen__claiminput
+{
+    border: none;
+    background-color: rgba(51,51,51,0.5);
+    font-size: 15px;
+    padding-right: 5px;
+    padding-top: 14px;
+    padding-bottom: 15px;
+    padding-left: 5px;
+    height: 70%;
+    width: 180%;
+    color: #fff;
+}
+
+.profileScreen__claiminput:hover {
+    color:#000;
+    background-color: #e6e6e6;
+    transition: all 0.2s;
+}
+
 .profileScreen__inputreceiveraddress 
 {
     border: none;
@@ -160,6 +180,14 @@ right: 0;
     font-size: 20px;
     white-space:nowrap;
 }
+
+.profileScreen__labelrightamt
+{
+    font-size: 20px;
+    white-space:nowrap;
+    margin-bottom: 2px;
+}
+
 
 .profileScreen__credrowright
 {
@@ -216,6 +244,19 @@ right: 0;
     font-size: 1rem;
     width: 146%;
     margin-left: 65px;
+    margin-bottom: 15px;
+    color:#fff;
+    background-color: #e50914;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+
+.profileScreen__claimethbtn {
+    padding: 5px 20px;
+    font-size: 1rem;
+    width: 146%;
+    margin-left: 85px;
     margin-bottom: 15px;
     color:#fff;
     background-color: #e50914;

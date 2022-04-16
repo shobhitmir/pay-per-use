@@ -104,11 +104,13 @@ function ProfileScreen() {
   {
       if (public_address.toLowerCase()===validation_address)
       {
-        dispatch(login({
+        const localuser = {
           uid : user.uid,
-          email: user.email,
-          public_key: public_address
-        }))
+          email : user.email,
+          public_key : public_address
+        }
+        localStorage.setItem("user",JSON.stringify(localuser))
+        window.location.reload(false)
       }
       else
       {
@@ -213,7 +215,7 @@ function ProfileScreen() {
     e.preventDefault()
     const tokenAmount = initialTokensRef.current.value
     PPUTokenSale.methods.initialTransfer(tokenAmount)
-    .send({ from: user.public_key })
+    .send({ from: (JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) })
     .then(() => {window.alert('Success : Token Sale Started !!');
     window.location.reload(false);})
     .catch((err)=>{window.alert('Error : ' + err.message)})
@@ -224,7 +226,8 @@ function ProfileScreen() {
     const tokenAmount = buyTokensRef.current.value
     console.log(tokenPrice*tokenAmount)
     PPUTokenSale.methods.buyTokens(tokenAmount)
-    .send({ from: user.public_key, value: (web3.utils.toWei(String(tokenPrice*tokenAmount))) })
+    .send({ from: JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key, 
+    value: (web3.utils.toWei(String(tokenPrice*tokenAmount))) })
     .then(() => {window.alert('Success : Tokens Bought !!');
     window.location.reload(false);})
     .catch((err)=>{window.alert('Error : ' + err.message)})
@@ -232,7 +235,7 @@ function ProfileScreen() {
 
   const endSale = (e) => {
     e.preventDefault()
-    PPUTokenSale.methods.endSale().send({ from: user.public_key })
+    PPUTokenSale.methods.endSale().send({ from: (JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) })
     .then(() => {window.alert('Success : Token Sale Ended !!')
     window.location.reload(false);})
     .catch((err)=>{window.alert('Error : ' + err.message)})
@@ -245,9 +248,9 @@ function ProfileScreen() {
     setAvailableTokens(result)
   })
 
-  if (user.public_key)
+  if (JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key)
   {
-      PPUToken.methods.balanceOf(user.public_key)
+      PPUToken.methods.balanceOf(JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key)
       .call()
       .then((result) => {
         setOwnedTokens(result)
@@ -334,7 +337,7 @@ function ProfileScreen() {
                 <Container>
                 <Row md={3} className="profileScreen__credrowright">
                 <Col md={3} className='profileScreen__labelright'>ETH Address : </Col>
-                <Col md={3}><input disabled className='profileScreen__input' type="text" value={user.public_key || ''}></input></Col>
+                <Col md={3}><input disabled className='profileScreen__input' type="text" value={JSON.parse(localStorage.getItem('user'))?.public_key || user.public_key || ''}></input></Col>
                 </Row>
                 <Row md={3} className="profileScreen__credrowright">
                 <Col md={4} className='profileScreen__labelright'>Tokens Owned : </Col>
@@ -353,7 +356,8 @@ function ProfileScreen() {
                 <Col md={2}><input disabled className='profileScreen__inputavailabletokens' type="text" value={tokenPrice + "  ETH"}></input></Col>
                 </Row>
                 <h1 className='profileScreen__heading1'></h1>
-                {user?.public_key && admin===user?.public_key &&
+                {(JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) 
+                && admin===(JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) &&
                 <Row>
                 <Col md={3}><input id="initial_tokens" ref={initialTokensRef} 
                 className='profileScreen__inputinitialtokens' placeholder='Enter tokens for sale..' type="number"></input></Col>
@@ -366,7 +370,8 @@ function ProfileScreen() {
                     className='profileScreen__endsale'>End Token Sale</button>
                 </Col>
                 </Row>}
-                {(!user?.public_key || admin!=user?.public_key) &&
+                {(!(JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) 
+                || admin!=(JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key)) &&
                 <Row>
                 <Col md={3}><input id="initial_tokens" ref={buyTokensRef} 
                 className='profileScreen__inputinitialtokens' placeholder='Enter tokens to buy..' type="number"></input></Col>

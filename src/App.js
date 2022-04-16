@@ -16,18 +16,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
   const dispatch = useDispatch()
-  var localuser = useSelector(selectUser)
-
-  if (JSON.parse(localStorage.getItem("user")))
-  {
-    localuser = JSON.parse(localStorage.getItem("user"))
-  }
-  var user = localuser
-
-  if (user && user.public_key)
-  {
-      localStorage.setItem("user", JSON.stringify(user));
-  }
+  const user = useSelector(selectUser)
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(userAuth => {
@@ -36,7 +25,7 @@ function App() {
         dispatch(login({
           uid : userAuth.uid,
           email: userAuth.email,
-          public_key: user?.public_key 
+          public_key: user?.public_key
         }))
       }
       else

@@ -1,5 +1,6 @@
 export const PPUTokenAddress = '0x6f1fDCE3e7Aece7CF1512D1AC4e6a28EAFdB7c41'
 export const PPUTokenSaleAddress = '0x2f6F5Bc9ff2830E25aC3c3DC14C46aE8e8aCe716'
+export const admin = '0xDB71DBb25Da16b81DCb005bF39E7CF165403779b'
 
 export const PPUTokenABI =  [
   {

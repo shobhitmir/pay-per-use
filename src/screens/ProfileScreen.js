@@ -9,7 +9,7 @@ import TokenScreen from './TokenScreen'
 import firebase from 'firebase/compat/app';
 import { useNavigate } from 'react-router-dom'
 import $ from "jquery";
-import { PPUTokenABI, PPUTokenAddress, PPUTokenSaleABI, PPUTokenSaleAddress } from '../abi'
+import { admin, PPUTokenABI, PPUTokenAddress, PPUTokenSaleABI, PPUTokenSaleAddress } from '../abi'
 
 const Web3 = require("web3");
 let metamaskEnabled = true;
@@ -26,8 +26,11 @@ function ProfileScreen() {
   const confirmRef = useRef(null)
   const publickeyRef = useRef(null)
   const initialTokensRef = useRef(null)
+  const buyTokensRef = useRef(null)
   const [availableTokens, setAvailableTokens] = useState(0)
   const [ownedTokens, setOwnedTokens] = useState(0)
+  const [soldTokens, setSoldTokens] = useState(0)
+  const [tokenPrice, setTokenPrice] = useState(0)
   const navigate = useNavigate()
 
   const getPublicKey = function()
@@ -211,9 +214,30 @@ function ProfileScreen() {
     const tokenAmount = initialTokensRef.current.value
     PPUTokenSale.methods.initialTransfer(tokenAmount)
     .send({ from: user.public_key })
-    .then(() => {window.alert('Success : Token Sale Started !!')})
+    .then(() => {window.alert('Success : Token Sale Started !!');
+    window.location.reload(false);})
     .catch((err)=>{window.alert('Error : ' + err.message)})
   }
+
+  const buyTokens = (e) => {
+    e.preventDefault()
+    const tokenAmount = buyTokensRef.current.value
+    console.log(tokenPrice*tokenAmount)
+    PPUTokenSale.methods.buyTokens(tokenAmount)
+    .send({ from: user.public_key, value: (web3.utils.toWei(String(tokenPrice*tokenAmount))) })
+    .then(() => {window.alert('Success : Tokens Bought !!');
+    window.location.reload(false);})
+    .catch((err)=>{window.alert('Error : ' + err.message)})
+  }
+
+  const endSale = (e) => {
+    e.preventDefault()
+    PPUTokenSale.methods.endSale().send({ from: user.public_key })
+    .then(() => {window.alert('Success : Token Sale Ended !!')
+    window.location.reload(false);})
+    .catch((err)=>{window.alert('Error : ' + err.message)})
+  }
+
 
   PPUToken.methods.balanceOf(PPUTokenSaleAddress)
   .call()
@@ -229,6 +253,18 @@ function ProfileScreen() {
         setOwnedTokens(result)
       })
   }
+
+  PPUTokenSale.methods.tokensSold()
+      .call()
+      .then((result) => {
+        setSoldTokens(result)
+      })
+
+      PPUTokenSale.methods.tokenPrice()
+      .call()
+      .then((result) => {
+        setTokenPrice(web3.utils.fromWei(result,"ether"))
+      })
 
   return (
     <div className='profileScreen'>
@@ -308,7 +344,16 @@ function ProfileScreen() {
                 <Col md={4} className='profileScreen__labelright'>Tokens Available : </Col>
                 <Col md={2}><input disabled className='profileScreen__inputavailabletokens' type="text" value={availableTokens}></input></Col>
                 </Row>
+                <Row md={3} className="profileScreen__credrowright">
+                <Col md={4} className='profileScreen__labelright'>Tokens Sold : </Col>
+                <Col md={2}><input disabled className='profileScreen__inputavailabletokens' type="text" value={soldTokens}></input></Col>
+                </Row>
+                <Row md={3} className="profileScreen__credrowright">
+                <Col md={4} className='profileScreen__labelright'>Token Price : </Col>
+                <Col md={2}><input disabled className='profileScreen__inputavailabletokens' type="text" value={tokenPrice + "  ETH"}></input></Col>
+                </Row>
                 <h1 className='profileScreen__heading1'></h1>
+                {user?.public_key && admin===user?.public_key &&
                 <Row>
                 <Col md={3}><input id="initial_tokens" ref={initialTokensRef} 
                 className='profileScreen__inputinitialtokens' placeholder='Enter tokens for sale..' type="number"></input></Col>
@@ -316,7 +361,20 @@ function ProfileScreen() {
                 <button onClick={startSale} 
                     className='profileScreen__startsale'>Start Token Sale</button>
                 </Col>
-                </Row>
+                <Col md={3}>
+                <button onClick={endSale} 
+                    className='profileScreen__endsale'>End Token Sale</button>
+                </Col>
+                </Row>}
+                {(!user?.public_key || admin!=user?.public_key) &&
+                <Row>
+                <Col md={3}><input id="initial_tokens" ref={buyTokensRef} 
+                className='profileScreen__inputinitialtokens' placeholder='Enter tokens to buy..' type="number"></input></Col>
+                <Col md={3}>
+                <button onClick={buyTokens} 
+                    className='profileScreen__buytokensbtn'>Buy Tokens</button>
+                </Col>
+                </Row>}
                 </Container>
                 </div>
             </div>

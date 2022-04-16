@@ -4,12 +4,14 @@ import YouTube from 'react-youtube';
 import ReactPlayer from 'react-player';
 import axios from "./axios";
 import "./Row.css";
+import { useNavigate } from 'react-router-dom';
 
 const base_url = "https://image.tmdb.org/t/p/original/";
 
 function Row({ title, fetchUrl, isLargeRow }) {
   const [movies, setMovies] = useState([]);
   const [trailerUrl, setTrailerUrl] = useState("");
+  const navigate = useNavigate()
 
   useEffect(() => {
 
@@ -33,23 +35,31 @@ function Row({ title, fetchUrl, isLargeRow }) {
   }
   
   const handleClick = (movie) => {
-    if (trailerUrl) {
-      setTrailerUrl('');
+    if (movie?.first_air_date)
+    {
+      navigate(`/info/tv/${movie.id}`)
     }
     else
     {
-      movieTrailer(null, { tmdbId: movie.id })
-      .then((url) => {
-        if (url === null)
-        {
-          setTrailerUrl("https://www.youtube.com/watch?v=PGKmexNTHNE")
-        }
-        else
-        {
-          setTrailerUrl(url);
-        }
-      })
+      navigate(`/info/movie/${movie.id}`)
     }
+    // if (trailerUrl) {
+    //   setTrailerUrl('');
+    // }
+    // else
+    // {
+    //   movieTrailer(null, { tmdbId: movie.id })
+    //   .then((url) => {
+    //     if (url === null)
+    //     {
+    //       setTrailerUrl("https://www.youtube.com/watch?v=PGKmexNTHNE")
+    //     }
+    //     else
+    //     {
+    //       setTrailerUrl(url);
+    //     }
+    //   })
+    // }
   }
 
   return (

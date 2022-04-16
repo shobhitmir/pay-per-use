@@ -2,12 +2,14 @@ import React, {useEffect, useState} from 'react'
 import axios from './axios';
 import requests from './requests';
 import "./Banner.css";
+import { useNavigate } from 'react-router-dom';
 
 const base_url = "https://image.tmdb.org/t/p/original/";
 
 function Banner() {
 
   const [movie, setMovie] = useState([]);
+  const navigate = useNavigate()
 
   useEffect(() => {
 
@@ -28,6 +30,19 @@ function Banner() {
       return str?.length > n ? str.substr(0,n-1) + "..." : str;
   }
 
+  const getInfo = (e) => {
+      e.preventDefault()
+      console.log(movie)
+      if (movie?.first_air_date)
+      {
+        navigate(`/info/tv/${movie.id}`)
+      }
+      else
+      {
+        navigate(`/info/movie/${movie.id}`)
+      }
+  }
+
   return (
     <header className="banner"
     style={{
@@ -44,8 +59,8 @@ function Banner() {
         </h1>
 
         <div className="banner__buttons">
-            <button className="banner__button">Play</button>
-            <button className="banner__button">My List</button>
+            <button className="banner__button">Purchase</button>
+            <button className="banner__button" onClick={getInfo}>Info</button>
         </div>
 
         <h1 className="banner__description">

@@ -20,13 +20,14 @@ const PPUTokenSale = new web3.eth.Contract(PPUTokenSaleABI,PPUTokenSaleAddress)
 
 function ProfileScreen() {
   const user = useSelector(selectUser);
-  const dispatch = useDispatch()
   const oldRef = useRef(null)
   const newRef = useRef(null)
   const confirmRef = useRef(null)
   const publickeyRef = useRef(null)
   const initialTokensRef = useRef(null)
   const buyTokensRef = useRef(null)
+  const sendTokensRef = useRef(null)
+  const sendAddressRef = useRef(null)
   const [availableTokens, setAvailableTokens] = useState(0)
   const [ownedTokens, setOwnedTokens] = useState(0)
   const [soldTokens, setSoldTokens] = useState(0)
@@ -233,6 +234,17 @@ function ProfileScreen() {
     .catch((err)=>{window.alert('Error : ' + err.message)})
   }
 
+  const sendTokens = (e) => {
+    e.preventDefault()
+    const tokenAmount = sendTokensRef.current.value
+    const receiverAddress = sendAddressRef.current.value
+    PPUToken.methods.transfer(receiverAddress,tokenAmount)
+    .send({ from: JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key})
+    .then(() => {window.alert('Success : Tokens Sent !!');
+    window.location.reload(false);})
+    .catch((err)=>{window.alert('Error : ' + err.message)})
+  }
+
   const endSale = (e) => {
     e.preventDefault()
     PPUTokenSale.methods.endSale().send({ from: (JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) })
@@ -378,6 +390,19 @@ function ProfileScreen() {
                 <Col md={3}>
                 <button onClick={buyTokens} 
                     className='profileScreen__buytokensbtn'>Buy Tokens</button>
+                </Col>
+                </Row>}
+                <h1 className='profileScreen__heading1'></h1>
+                {(!(JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) 
+                || admin!=(JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key)) &&
+                <Row>
+                <Col md={3}><input id="initial_tokens" ref={sendTokensRef} 
+                className='profileScreen__inputinitialtokens' placeholder='Enter tokens to send..' type="number"></input></Col>
+                <Col md={3}><input id="initial_tokens" ref={sendAddressRef} 
+                className='profileScreen__inputreceiveraddress' placeholder='Enter receiver address..' type="text"></input></Col>
+                <Col md={3}>
+                <button onClick={sendTokens} 
+                    className='profileScreen__sendtokensbtn'>Send Tokens</button>
                 </Col>
                 </Row>}
                 </Container>

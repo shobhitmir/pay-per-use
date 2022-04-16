@@ -1,5 +1,5 @@
-export const PPUTokenAddress = '0x6f1fDCE3e7Aece7CF1512D1AC4e6a28EAFdB7c41'
-export const PPUTokenSaleAddress = '0x2f6F5Bc9ff2830E25aC3c3DC14C46aE8e8aCe716'
+export const PPUTokenAddress = '0x55C42E4d5F4c5dD37bac7E930bEfd9A1702a85d7'
+export const PPUTokenSaleAddress = '0xa0dBb6Ac51dD21fec49Dc62693Fe3D1604E8f8D8'
 export const admin = '0xDB71DBb25Da16b81DCb005bF39E7CF165403779b'
 
 export const PPUTokenABI =  [
@@ -210,8 +210,9 @@ export const PPUTokenABI =  [
         "type": "bool"
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    "stateMutability": "payable",
+    "type": "function",
+    "payable": true
   },
   {
     "inputs": [
@@ -305,6 +306,11 @@ export const PPUTokenSaleABI =   [
     "type": "event"
   },
   {
+    "stateMutability": "payable",
+    "type": "fallback",
+    "payable": true
+  },
+  {
     "inputs": [],
     "name": "tokenContract",
     "outputs": [
@@ -374,10 +380,38 @@ export const PPUTokenSaleABI =   [
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_numberOfTokens",
+        "type": "uint256"
+      }
+    ],
+    "name": "sellTokens",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function",
+    "payable": true
+  },
+  {
     "inputs": [],
     "name": "endSale",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "getfunds",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function",
+    "payable": true
   }
 ]

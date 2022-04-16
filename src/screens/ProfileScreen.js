@@ -28,6 +28,7 @@ function ProfileScreen() {
   const buyTokensRef = useRef(null)
   const sendTokensRef = useRef(null)
   const sendAddressRef = useRef(null)
+  const sellTokensRef = useRef(null)
   const [availableTokens, setAvailableTokens] = useState(0)
   const [ownedTokens, setOwnedTokens] = useState(0)
   const [soldTokens, setSoldTokens] = useState(0)
@@ -222,10 +223,20 @@ function ProfileScreen() {
     .catch((err)=>{window.alert('Error : ' + err.message)})
   }
 
+  const sellTokens = (e) => {
+    e.preventDefault()
+    const tokenAmount = sellTokensRef.current.value
+    PPUTokenSale.methods.sellTokens(tokenAmount)
+    .send({ from: JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key})
+    .then(() => {window.alert('Success : Tokens Sold !!');
+    window.location.reload(false);})
+    .catch((err)=>{window.alert('Error : ' + err.message)})
+  }
+
+
   const buyTokens = (e) => {
     e.preventDefault()
     const tokenAmount = buyTokensRef.current.value
-    console.log(tokenPrice*tokenAmount)
     PPUTokenSale.methods.buyTokens(tokenAmount)
     .send({ from: JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key, 
     value: (web3.utils.toWei(String(tokenPrice*tokenAmount))) })
@@ -392,6 +403,20 @@ function ProfileScreen() {
                     className='profileScreen__buytokensbtn'>Buy Tokens</button>
                 </Col>
                 </Row>}
+
+                <h1 className='profileScreen__heading1'></h1>
+                {(!(JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) 
+                || admin!=(JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key)) &&
+                <Row>
+                <Col md={3}><input id="initial_tokens" ref={sellTokensRef} 
+                className='profileScreen__inputinitialtokens' placeholder='Enter tokens to sell..' type="number"></input></Col>
+                <Col md={3}>
+                <button onClick={sellTokens} 
+                    className='profileScreen__buytokensbtn'>Sell Tokens</button>
+                </Col>
+                </Row>}
+
+
                 <h1 className='profileScreen__heading1'></h1>
                 {(!(JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) 
                 || admin!=(JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key)) &&

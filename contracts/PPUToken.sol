@@ -39,6 +39,7 @@ contract PPUToken {
 
     function initialtransfer(address _to, uint256 _value)
         public
+        payable
         returns (bool success)
     {
         require(balanceOf[tx.origin] >= _value, "insufficient balance !!");

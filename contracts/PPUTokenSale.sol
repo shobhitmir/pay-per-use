@@ -21,6 +21,8 @@ contract PPUTokenSale {
         require(y == 0 || (z = x * y) / y == x, "multiplication failed !!");
     }
 
+    fallback() external payable {}
+
     function buyTokens(uint256 _numberOfTokens) public payable {
         require(
             msg.value == multiply(_numberOfTokens, tokenPrice),
@@ -36,13 +38,21 @@ contract PPUTokenSale {
         );
 
         tokensSold += _numberOfTokens;
-
+        payable(address(this)).transfer(msg.value);
         emit Sell(msg.sender, _numberOfTokens);
     }
 
     function initialTransfer(uint256 _numberOfTokens) public {
         require(msg.sender == admin, "not admin!!");
         tokenContract.initialtransfer(address(this), _numberOfTokens);
+    }
+
+    function sellTokens(uint256 _numberOfTokens) public payable {
+        require(
+            tokenContract.initialtransfer(address(this), _numberOfTokens),
+            "transfer failed !!"
+        );
+        payable(msg.sender).transfer(multiply(_numberOfTokens, tokenPrice));
     }
 
     function endSale() public {
@@ -54,5 +64,10 @@ contract PPUTokenSale {
             ),
             "transfer failed !!"
         );
+    }
+
+    function getfunds(uint256 amount) public payable {
+        require(msg.sender == admin, "not admin !!");
+        payable(admin).transfer(amount);
     }
 }

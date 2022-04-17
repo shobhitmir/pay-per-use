@@ -50,19 +50,18 @@ function HomeScreen() {
 
     return (
       <div className="homeScreen">
-        <Nav />
+        <Nav/>
         <div className='searchbar'>
         <input ref={searchRef} className='search__input' placeholder="Search for a movie"
         onChange={searchMovie}/>
         <i onClick={searchMovie} className="fa fa-search search__icon"></i>
         </div>
-      <div>
       {(query && results.length>0) ? 
       (
         <div>
                 {results.map(result=> (
                   <>
-                  <header className="movie"
+                  <header className="filter"
                   style={{
                       backgroundSize: "contain",
                       backgroundImage: `url(
@@ -71,30 +70,29 @@ function HomeScreen() {
                       backgroundPosition: "center center",
                   }}>
               
-                  <div className="movie__contents">
-                      <h1 className="movie__title">
+                  <div className="filter__contents">
+                      <h1 className="filter__title">
                           {result?.title || result?.name || result?.original_name}
                       </h1>
               
-                      <div className="movie__buttons">
-                          <button className="banner__button">Purchase</button>
-                          <button className="banner__button" name={result?.first_air_date} value={result?.id} onClick={getInfo}>Info</button>
+                      <div className="filter__buttons">
+                          <button className="filter__button">Purchase</button>
+                          <button className="filter__button" name={result?.first_air_date} value={result?.id} onClick={getInfo}>Info</button>
                       </div>
               
-                      <h1 className="movie__description">
+                      <h1 className="filter__description">
                       {truncate(result?.overview, 150)}
                       </h1>
                   </div>
                   </header>
-                  <h1 className='movie__sep'></h1>
+                  <h1 className='filter__sep'></h1>
                   </>
                 ))}
         </div>
       ) :
       (
         <>
-        <Banner />
-        <br></br>
+        <Banner/>
         <Row title="NETFLIX ORIGINALS" fetchUrl={requests.fetchNetflixOriginals} isLargeRow/>
         <Row title="Trending Now" fetchUrl={requests.fetchTrending} />
         <Row title="Top Rated" fetchUrl={requests.fetchTopRated} />
@@ -106,7 +104,6 @@ function HomeScreen() {
         </>
       )
       }
-      </div>
       </div>
     );
   }

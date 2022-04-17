@@ -1,4 +1,12 @@
-.movie {
+* {
+    margin: 0;
+  }
+  
+.moviescreen {
+background-color: #111;
+}
+
+.moviebanner {
     color: white;
     object-fit: contain;
     height: 500px;
@@ -6,6 +14,7 @@
 
 .movie__contents {
     margin-left: 30px;
+    padding-top: 140px;
     height: 425px;
 }
 
@@ -14,10 +23,6 @@
     font-weight: 800;
     padding-top: 90px;
     padding-bottom: 0.3rem;
-}
-
-.moviescreen {
-    height: 100vh;
 }
 
 .movie__description {
@@ -48,14 +53,4 @@
     color:#000;
     background-color: #e6e6e6;
     transition: all 0.2s;
-}
-
-.movie--fadeBottom {
-    height: 7.4rem;
-    background-image: linear-gradient(
-        180deg,
-        transparent,
-        rgba(37,37,37,0.61),
-        #111
-    );
 }

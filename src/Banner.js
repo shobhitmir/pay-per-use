@@ -32,7 +32,6 @@ function Banner() {
 
   const getInfo = (e) => {
       e.preventDefault()
-      console.log(movie)
       if (movie?.first_air_date)
       {
         navigate(`/info/tv/${movie.id}`)

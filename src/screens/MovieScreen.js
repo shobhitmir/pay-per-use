@@ -46,11 +46,15 @@ function MovieScreen(props) {
 
     const showTrailer = (e) => {
         e.preventDefault()
-        const videos = movie?.videos?.results?.filter(
+        const trailers = movie?.videos?.results?.filter(
             (video)=> {return (video?.type==="Trailer" || video?.type==="trailer")})
-        const trailer = videos?.filter((video) => {return video?.name==="Official Trailer"})
-        setTrailerUrl(`https://www.youtube.com/watch?v=${trailer[0]?.key}`)
+        const official_trailers = trailers?.filter((video) => {return video?.name==="Official Trailer" || video?.name==="official trailer" })
+        const teasers = movie?.videos?.results?.filter(
+            (video)=> {return (video?.type==="Teaser" || video?.type==="teaser")})
+        const official_teasers = teasers?.filter((video) => {return video?.name==="Official Teaser" || video?.name==="official teaser" })
+        setTrailerUrl(`https://www.youtube.com/watch?v=${official_trailers[0]?.key||trailers[0]?.key||official_teasers[0]?.key||teasers[0]?.key||movie?.videos?.results[0]?.key}`)
         setShow(true)
+        console.log(movie)
     }
 
   return (
@@ -61,7 +65,7 @@ function MovieScreen(props) {
     <div>
         <div className="season__buttons">
                     <button className="season__button season__back" 
-                    onClick={(e)=>{console.log('hi');e.preventDefault();setViewSeasons(!viewSeasons)}}>Back</button>
+                    onClick={(e)=>{e.preventDefault();setViewSeasons(!viewSeasons)}}>Back</button>
         </div>
             {movie?.seasons.map(season=> (
             <>

@@ -1,15 +1,20 @@
 import React, { useEffect, useState } from 'react'
+import { Button, Container, Modal, Row } from 'react-bootstrap';
 import './MovieScreen.css'
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import { API_KEY } from '../requests';
 import Nav from '../Nav';
-import { Container, Row } from 'react-bootstrap';
+import ReactPlayer from 'react-player';
+
 
 
 function MovieScreen(props) {
     const [movie,setMovie] = useState(null)
     const [viewSeasons, setViewSeasons] = useState(false)
+    const [show, setShow] = useState(false);
+    const handleClose = () => setShow(false);
+    const [trailerUrl, setTrailerUrl] = useState('')
 
     async function fetchData(fetchUrl)
     {
@@ -24,8 +29,8 @@ function MovieScreen(props) {
 
     const movie_id = parseInt(useParams().id,10)
     const type = useParams().type
-    const fetchmovieUrl = `https://api.themoviedb.org/3/movie/${movie_id}?api_key=${API_KEY}`
-    const fetchtvUrl = `https://api.themoviedb.org/3/tv/${movie_id}?api_key=${API_KEY}`
+    const fetchmovieUrl = `https://api.themoviedb.org/3/movie/${movie_id}?api_key=${API_KEY}&append_to_response=videos`
+    const fetchtvUrl = `https://api.themoviedb.org/3/tv/${movie_id}?api_key=${API_KEY}&append_to_response=videos`
     const domain = (type=='tv') ? 'TV Series' : 'Movie'
 
     useEffect(() => {
@@ -38,7 +43,15 @@ function MovieScreen(props) {
             fetchData(fetchmovieUrl)
         }
     }, [])
-    console.log(movie)
+
+    const showTrailer = (e) => {
+        e.preventDefault()
+        const videos = movie?.videos?.results?.filter(
+            (video)=> {return (video?.type==="Trailer" || video?.type==="trailer")})
+        const trailer = videos?.filter((video) => {return video?.name==="Official Trailer"})
+        setTrailerUrl(`https://www.youtube.com/watch?v=${trailer[0]?.key}`)
+        setShow(true)
+    }
 
   return (
     <div className='moviescreen'>
@@ -104,11 +117,20 @@ function MovieScreen(props) {
             {truncate(movie?.overview,200)}
             <div className="movie__buttons">
                 <button className="movie__button">Purchase</button>
-                <button className="movie__button">Trailer</button>
+                <button className="movie__button" onClick={showTrailer}>Trailer</button>
                 {movie?.seasons && <button className="movie__button" 
                 onClick={(e)=>{e.preventDefault();setViewSeasons(!viewSeasons)}}>View Seasons</button>}
             </div>
             </h1>
+
+            <Modal contentClassName='trailer__modal' show={show} onHide={handleClose}>
+            <Modal.Body>
+            {trailerUrl && <ReactPlayer url={trailerUrl} controls={true} />}
+            </Modal.Body>
+            </Modal>
+
+
+
 
             <div className='movie__metadata'>
             <h1 className="movie__metadataheading">
@@ -120,8 +142,8 @@ function MovieScreen(props) {
             {
               [...Array(Math.round(movie?.vote_average || 0))].map((elementInArray,rating) =>
               ( 
-                  (((rating+1)%2==0 && <span class="fa fa-star checked c-yellow"></span>) ||
-                  (((rating+1)%2!=0 && (Math.round(movie?.vote_average) - rating == 1) && <span class="fa fa-star-half-o c-yellow"></span>)))
+                  (((rating+1)%2==0 && <span className="fa fa-star checked c-yellow"></span>) ||
+                  (((rating+1)%2!=0 && (Math.round(movie?.vote_average) - rating == 1) && <span className="fa fa-star-half-o c-yellow"></span>)))
               )
               )
           }

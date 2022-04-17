@@ -126,6 +126,12 @@ height: 100vh;
     font-size: 1.1rem;
 }
 
+.trailer__modal {
+    height: 0 !important;
+    width: 0 !important;
+    margin-top:20%;
+}
+
 .movie__button:hover {
     color:#000;
     background-color: #e6e6e6;

@@ -60,13 +60,14 @@ function MovieScreen(props) {
 
     const showTrailer = (e) => {
         e.preventDefault()
+        const default_url = "IKhxRdN2UkQ"
         const trailers = movie?.videos?.results?.filter(
             (video)=> {return (video?.type==="Trailer" || video?.type==="trailer")})
         const official_trailers = trailers?.filter((video) => {return video?.name==="Official Trailer" || video?.name==="official trailer" })
         const teasers = movie?.videos?.results?.filter(
             (video)=> {return (video?.type==="Teaser" || video?.type==="teaser")})
         const official_teasers = teasers?.filter((video) => {return video?.name==="Official Teaser" || video?.name==="official teaser" })
-        setTrailerUrl(`https://www.youtube.com/watch?v=${official_trailers[0]?.key||trailers[0]?.key||official_teasers[0]?.key||teasers[0]?.key||movie?.videos?.results[0]?.key}`)
+        setTrailerUrl(`https://www.youtube.com/watch?v=${official_trailers[0]?.key||trailers[0]?.key||official_teasers[0]?.key||teasers[0]?.key||movie?.videos?.results[0]?.key||default_url}`)
         setShow(true)
         console.log(movie)
     }

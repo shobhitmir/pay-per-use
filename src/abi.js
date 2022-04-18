@@ -1,6 +1,7 @@
 export const PPUTokenAddress = '0x55C42E4d5F4c5dD37bac7E930bEfd9A1702a85d7'
 export const PPUTokenSaleAddress = '0xa0dBb6Ac51dD21fec49Dc62693Fe3D1604E8f8D8'
 export const admin = '0xDB71DBb25Da16b81DCb005bF39E7CF165403779b'
+export const MovieContractAddress = '0x3c215C33fCeFa51B0E434B94BF101A52eFC14BC6'
 
 export const PPUTokenABI =  [
   {
@@ -413,5 +414,93 @@ export const PPUTokenSaleABI =   [
     "stateMutability": "payable",
     "type": "function",
     "payable": true
+  }
+]
+
+export const MovieContractABI = [
+  {
+    "inputs": [
+      {
+        "internalType": "contract PPUToken",
+        "name": "_tokenContract",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "tokenContract",
+    "outputs": [
+      {
+        "internalType": "contract PPUToken",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "email",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "category",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "price_in_tokens",
+        "type": "uint256"
+      }
+    ],
+    "name": "buy_movie",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "email",
+        "type": "string"
+      }
+    ],
+    "name": "getMovies",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "id",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "category",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct MovieContract.Movie[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
   }
 ]

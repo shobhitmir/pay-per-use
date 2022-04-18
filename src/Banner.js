@@ -4,8 +4,6 @@ import requests from './requests';
 import "./Banner.css";
 import { useNavigate } from 'react-router-dom';
 
-const base_url = "https://image.tmdb.org/t/p/original/";
-
 function Banner() {
 
   const [movie, setMovie] = useState([]);
@@ -58,8 +56,7 @@ function Banner() {
         </h1>
 
         <div className="banner__buttons">
-            <button className="banner__button">Purchase</button>
-            <button className="banner__button" onClick={getInfo}>Info</button>
+            <button className="banner__button" onClick={getInfo}>View Details</button>
         </div>
 
         <h1 className="banner__description">

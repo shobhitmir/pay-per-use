@@ -6,10 +6,17 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { API_KEY } from '../requests';
 import Nav from '../Nav';
 import ReactPlayer from 'react-player';
+import { MovieContractABI, MovieContractAddress} from '../abi';
+import { useSelector } from 'react-redux';
+import { selectUser } from '../features/userSlice';
 
 
+const Web3 = require("web3");
+const web3 = new Web3(window.ethereum);
+const MovieContract = new web3.eth.Contract(MovieContractABI,MovieContractAddress)
 
-function MovieScreen(props) {
+
+function MovieScreen() {
     const [movie,setMovie] = useState(null)
     const [viewState, setViewState] = useState(0)
     const [show, setShow] = useState(false);
@@ -18,6 +25,25 @@ function MovieScreen(props) {
     const [trailerUrl, setTrailerUrl] = useState('')
     const [season,setSeason] = useState(null)
     const navigate = useNavigate()
+    const user = useSelector(selectUser)
+
+    const purchaseMovie = (e) => {
+        e.preventDefault();
+        const price = e.target.value
+        console.log(price)
+        if (!JSON.parse(localStorage.getItem('user'))?.public_key && !user?.public_key)
+        {
+          alert('Please link your ethereum account to proceed..')
+          navigate('/profile')
+        }
+        else
+        {
+          MovieContract.methods.buy_movie(user?.email,movie?.id,type,price).send({ from: (JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) })
+          .then(() => {window.alert('Purchase Successful !!')
+          window.location.reload(false);})
+          .catch((err)=>{window.alert('Error : ' + err.message)})
+        }
+    }
 
     async function fetchData(fetchUrl)
     {
@@ -47,6 +73,7 @@ function MovieScreen(props) {
         if (type === 'tv')
         {
             fetchData(fetchtvUrl)
+            fetchSeasonData(fetchseasonUrl)
         }
         else
         {
@@ -103,7 +130,8 @@ function MovieScreen(props) {
             <h1 className="movie__description">
             {truncate(movie?.overview,200)}
             <div className="movie__buttons">
-                <button className="movie__button">Purchase</button>
+                <button className="movie__button" value={movie?.number_of_episodes || 3} 
+                onClick={purchaseMovie}>Purchase : {movie?.number_of_episodes || 3} PPU</button>
                 <button className="movie__button" onClick={showTrailer}>Trailer</button>
                 {movie?.seasons && <button className="movie__button" 
                 onClick={(e)=>{e.preventDefault();setViewState(1)}}>View Seasons</button>}
@@ -169,7 +197,8 @@ function MovieScreen(props) {
                 </h1>
         
                 <div className="season__buttons">
-                    <button className="season__button">Purchase</button>
+                    <button className="season__button" value={season?.episode_count}
+                    onClick={purchaseMovie}>Purchase : {season?.episode_count} PPU</button>
                     <button className="season__button season__episodes" disabled>Episodes : {season?.episode_count}</button>
                     <button className="season__button"
                     onClick={(e)=> {e.preventDefault();setSeasonNumber(season?.season_number);setViewState(2)}}>View Episodes</button>
@@ -211,7 +240,8 @@ function MovieScreen(props) {
         
                 <div className="episode__buttons">
                 <h5 className="episode__details">
-                    <button className="episode__button episode__purchase">Purchase</button>
+                    <button className="episode__button episode__purchase" value={1}
+                    onClick={purchaseMovie}>Purchase : 1 PPU</button>
                     <div className='episode__detail episode__rating'>Rating : {episode?.vote_average}</div>
                     <div className='episode__detail episode__stars'>Stars :<span> </span> 
                     {

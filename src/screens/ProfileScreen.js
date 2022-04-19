@@ -314,6 +314,10 @@ function ProfileScreen() {
   return (
     <div className='profileScreen'>
         <Nav />
+        <div className="profileback__buttons">
+        <button className="profileback__button profile__back" 
+        onClick={(e)=>{e.preventDefault();navigate('/')}}>Back</button>
+        </div>
         <div className='profileScreen__body left'>
             <h1 className='profileScreen__heading1'>Edit Profile</h1>
             <div className='profileScreen__info'>

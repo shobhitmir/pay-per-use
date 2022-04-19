@@ -11,6 +11,9 @@ import { useSelector } from 'react-redux';
 import { selectUser } from '../features/userSlice';
 import { database } from '../firebase';
 
+const YTPlayer = require('yt-player')
+var player;
+
 
 const Web3 = require("web3");
 const web3 = new Web3(window.ethereum);
@@ -22,13 +25,14 @@ function MovieScreen() {
     const [viewState, setViewState] = useState(0)
     const [show, setShow] = useState(false);
     const handleClose = () => setShow(false);
+    const [play, setPlay] = useState(false);
+    const closePlay = () => setPlay(false);
     const [seasonNumber,setSeasonNumber] = useState('')
     const [trailerUrl, setTrailerUrl] = useState('')
     const [season,setSeason] = useState(null)
     const navigate = useNavigate()
     const user = useSelector(selectUser)
     const [currentSubscriptions, setSubscriptions] = useState(null)
-
 
     function initSubscriptions()
     {
@@ -178,7 +182,19 @@ function MovieScreen() {
         {
             fetchSeasonData(fetchseasonUrl)
         }
-    }, [viewState])
+        if (play)
+        {
+            player = new YTPlayer('#ytplayer',{
+                width:500,
+                height:800,
+            });
+            player.load("gbbaX6WzBFg")
+            player.on('timeupdate',(seconds) => 
+            {
+                console.log(seconds)
+            })
+        }
+    }, [viewState,play])
 
     fetchSubscriptions()
 
@@ -242,6 +258,11 @@ function MovieScreen() {
   return (
     <div className='moviescreen'>
     <Nav/>
+    <Modal contentClassName='player__modal' show={play} onHide={closePlay}>
+            <Modal.Body id="ytplayer">
+            </Modal.Body>
+    </Modal>
+
     {viewState===0 &&
         <>
         <div className="episode__buttons">
@@ -273,7 +294,8 @@ function MovieScreen() {
                 {!hasPurchasedMovie() ? 
                 (<button className="movie__button" value={movie?.number_of_episodes || 3} 
                 onClick={purchaseMovie}>Purchase : {movie?.number_of_episodes || 3} PPU</button>) :
-                (<button className="movie__button">Play</button>)}
+                (<button className="movie__button" 
+                onClick={()=>{setPlay(true)}}>Play</button>)}
                 <button className="movie__button" onClick={showTrailer}>Trailer</button>
                 {movie?.seasons && <button className="movie__button" 
                 onClick={(e)=>{e.preventDefault();setViewState(1)}}>View Seasons</button>}
@@ -285,9 +307,6 @@ function MovieScreen() {
             {trailerUrl && <ReactPlayer url={trailerUrl} controls={true} />}
             </Modal.Body>
             </Modal>
-
-
-
 
             <div className='movie__metadata'>
             <h1 className="movie__metadataheading">
@@ -344,7 +363,7 @@ function MovieScreen() {
                     <button className="season__button" name={'{"season":'+season?.season_number+"}"} value={season?.episode_count}
                     onClick={purchaseMovie}>Purchase : {season?.episode_count} PPU</button>)
                 :
-                (<button className="season__button">Play</button>)}
+                (<button className="season__button" onClick={()=>{setPlay(true)}}>Play</button>)}
                     <button className="season__button season__episodes" disabled>Episodes : {season?.episode_count}</button>
                     <button className="season__button"
                     onClick={(e)=> {e.preventDefault();setSeasonNumber(season?.season_number);setViewState(2)}}>View Episodes</button>
@@ -390,7 +409,7 @@ function MovieScreen() {
                     (<button className="episode__button episode__purchase" 
                     name={'{"season":'+season?.season_number+',"episode":'+episode?.episode_number+"}"} value={1}
                     onClick={purchaseMovie}>Purchase : 1 PPU</button>) :
-                    (<button className="episode__button episode__purchase">Play</button>)
+                    (<button className="episode__button episode__purchase" onClick={()=>{setPlay(true)}}>Play</button>)
                     }
                     <div className='episode__detail episode__rating'>Rating : {episode?.vote_average}</div>
                     <div className='episode__detail episode__stars'>Stars :<span> </span> 

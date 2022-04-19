@@ -152,6 +152,15 @@ height: 100vh;
     margin-top:20%;
 }
 
+.player__modal {
+  height: 450px !important;
+  width: 500px !important;
+  padding: none;
+  margin-top:20%;
+  background: #000;
+}
+
+
 .movie__button:hover {
     color:#000;
     background-color: #e6e6e6;

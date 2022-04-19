@@ -322,6 +322,34 @@ function MovieScreen() {
         .catch(alert)
     }
 
+    const getEPRefund = (e) => {
+        const info = JSON.parse(e.target.value)
+        const season = info['season']
+        const episode = info['episode']
+        const subscriptions = currentSubscriptions
+        if (!subscriptions[season][episode][2])
+        {
+            window.alert("Please play movie atleast once to avail refund..")
+            return
+        }
+        const timeleft = Math.round(subscriptions[season][episode][2]) - Math.round(subscriptions[season][episode][1])
+        const total_time = Math.round(subscriptions[season][episode][2])
+        const refund_tokens = Math.round((timeleft/total_time)*1)
+        MovieContract.methods.refund(refund_tokens)
+        .send({ from: (JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) })
+        .then(() => {
+            const dbkey = movie?.id + ":" + type;
+            subscriptions[season][episode] = [false,0]
+            database.ref("user_subscriptions/" + user?.uid).update({
+                [dbkey]: subscriptions
+            }).then(()=>{window.alert('Refund Successful !!');
+            window.location.reload(false)
+            })
+            .catch(alert)
+        })
+        .catch((e) => {alert(e)})
+    }
+
   return (
     <div className='moviescreen'>
     <Nav/>
@@ -478,9 +506,11 @@ function MovieScreen() {
                     (<button className="episode__button episode__purchase" 
                     name={'{"season":'+season?.season_number+',"episode":'+episode?.episode_number+"}"} value={1}
                     onClick={purchaseMovie}>Purchase : 1 PPU</button>) :
-                    (<button className="episode__button episode__purchase" 
+                    (<><button className="episode__button episode__purchase" 
                     onClick={()=>{setPlay(true);setTime(0);
-                        setPlayingInfo('{"season":'+season?.season_number+',"episode":'+episode?.episode_number+"}")}}>Play</button>)
+                        setPlayingInfo('{"season":'+season?.season_number+',"episode":'+episode?.episode_number+"}")}}>Play</button>
+                    <button className="episode__button episode__purchase" value={'{"season":'+season?.season_number+',"episode":'+episode?.episode_number+"}"}
+                    onClick={getEPRefund}>Refund</button></>)
                     }
                     <div className='episode__detail episode__rating'>Rating : {episode?.vote_average}</div>
                     <div className='episode__detail episode__stars'>Stars :<span> </span> 

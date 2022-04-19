@@ -1,7 +1,7 @@
 export const PPUTokenAddress = '0x55C42E4d5F4c5dD37bac7E930bEfd9A1702a85d7'
 export const PPUTokenSaleAddress = '0xa0dBb6Ac51dD21fec49Dc62693Fe3D1604E8f8D8'
 export const admin = '0xDB71DBb25Da16b81DCb005bF39E7CF165403779b'
-export const MovieContractAddress = '0x3c215C33fCeFa51B0E434B94BF101A52eFC14BC6'
+export const MovieContractAddress = '0x991EC50c742ee23a3f469E657f8d01A1b8441d16'
 
 export const PPUTokenABI =  [
   {
@@ -502,5 +502,18 @@ export const MovieContractABI = [
     "stateMutability": "view",
     "type": "function",
     "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "number_of_tokens",
+        "type": "uint256"
+      }
+    ],
+    "name": "refund",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   }
 ]

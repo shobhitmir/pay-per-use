@@ -26,13 +26,14 @@ function MovieScreen() {
     const [show, setShow] = useState(false);
     const handleClose = () => setShow(false);
     const [play, setPlay] = useState(false);
-    const closePlay = () => setPlay(false);
     const [seasonNumber,setSeasonNumber] = useState('')
     const [trailerUrl, setTrailerUrl] = useState('')
     const [season,setSeason] = useState(null)
     const navigate = useNavigate()
     const user = useSelector(selectUser)
     const [currentSubscriptions, setSubscriptions] = useState(null)
+    const [timeWatched,setTime] = useState(0)
+    const [playinginfo,setPlayingInfo] = useState("")
 
     function initSubscriptions()
     {
@@ -191,7 +192,10 @@ function MovieScreen() {
             player.load("gbbaX6WzBFg")
             player.on('timeupdate',(seconds) => 
             {
-                console.log(seconds)
+                if (Math.ceil(seconds) > timeWatched)
+                {
+                    setTime(Math.ceil(seconds))
+                }
             })
         }
     }, [viewState,play])
@@ -255,6 +259,69 @@ function MovieScreen() {
         setShow(true)
     }
 
+    const closePlay = () => {
+        setPlay(false);
+        var info;
+        const total_time = player.getDuration()
+        if (playinginfo)
+        {
+            info = JSON.parse(playinginfo)
+        }
+        var episode,season;
+        if (info && info['episode'])
+        {
+            episode = info['episode']
+            season = info['season']
+        }
+        else if (info && info['season'])
+        {
+            season = info['season']
+            for (var key in currentSubscriptions[season])
+            {
+                if (currentSubscriptions[season][key][0] === true)
+                {
+                    episode = key;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            if (type==='tv')
+            {
+                var done = false;
+                for (var seas in currentSubscriptions)
+                {
+                    for (var epis in currentSubscriptions[seas])
+                    {
+                        if (currentSubscriptions[seas][epis][0] === true)
+                        {
+                            episode = epis;
+                            season = seas;
+                            done = true;
+                            break;
+                        }
+                    }
+                    if (done)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+        const subscriptions = currentSubscriptions;
+        if (episode && season)
+        {
+            subscriptions[season][episode] = [true,timeWatched,total_time];
+        }
+        const dbkey = movie?.id + ":" + type;
+        database.ref("user_subscriptions/" + user?.uid).update({
+            [dbkey]: subscriptions
+        }).then(()=>{window.location.reload(false)
+        })
+        .catch(alert)
+    }
+
   return (
     <div className='moviescreen'>
     <Nav/>
@@ -295,7 +362,8 @@ function MovieScreen() {
                 (<button className="movie__button" value={movie?.number_of_episodes || 3} 
                 onClick={purchaseMovie}>Purchase : {movie?.number_of_episodes || 3} PPU</button>) :
                 (<button className="movie__button" 
-                onClick={()=>{setPlay(true)}}>Play</button>)}
+                onClick={()=>{setPlay(true);setTime(0);
+                setPlayingInfo("")}}>Play</button>)}
                 <button className="movie__button" onClick={showTrailer}>Trailer</button>
                 {movie?.seasons && <button className="movie__button" 
                 onClick={(e)=>{e.preventDefault();setViewState(1)}}>View Seasons</button>}
@@ -363,7 +431,8 @@ function MovieScreen() {
                     <button className="season__button" name={'{"season":'+season?.season_number+"}"} value={season?.episode_count}
                     onClick={purchaseMovie}>Purchase : {season?.episode_count} PPU</button>)
                 :
-                (<button className="season__button" onClick={()=>{setPlay(true)}}>Play</button>)}
+                (<button className="season__button" onClick={()=>{setPlay(true);setTime(0);
+                    setPlayingInfo('{"season":'+season?.season_number+"}")}}>Play</button>)}
                     <button className="season__button season__episodes" disabled>Episodes : {season?.episode_count}</button>
                     <button className="season__button"
                     onClick={(e)=> {e.preventDefault();setSeasonNumber(season?.season_number);setViewState(2)}}>View Episodes</button>
@@ -409,7 +478,9 @@ function MovieScreen() {
                     (<button className="episode__button episode__purchase" 
                     name={'{"season":'+season?.season_number+',"episode":'+episode?.episode_number+"}"} value={1}
                     onClick={purchaseMovie}>Purchase : 1 PPU</button>) :
-                    (<button className="episode__button episode__purchase" onClick={()=>{setPlay(true)}}>Play</button>)
+                    (<button className="episode__button episode__purchase" 
+                    onClick={()=>{setPlay(true);setTime(0);
+                        setPlayingInfo('{"season":'+season?.season_number+',"episode":'+episode?.episode_number+"}")}}>Play</button>)
                     }
                     <div className='episode__detail episode__rating'>Rating : {episode?.vote_average}</div>
                     <div className='episode__detail episode__stars'>Stars :<span> </span> 

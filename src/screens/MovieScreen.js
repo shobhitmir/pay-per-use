@@ -9,6 +9,7 @@ import ReactPlayer from 'react-player';
 import { MovieContractABI, MovieContractAddress} from '../abi';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../features/userSlice';
+import { database } from '../firebase';
 
 
 const Web3 = require("web3");
@@ -26,11 +27,76 @@ function MovieScreen() {
     const [season,setSeason] = useState(null)
     const navigate = useNavigate()
     const user = useSelector(selectUser)
+    const [currentSubscriptions, setSubscriptions] = useState(null)
+
+
+    function initSubscriptions()
+    {
+        var seasons = {}
+        movie?.seasons?.map((season) => 
+        {
+        seasons[season?.season_number] = {}
+        for(var epi=1;epi<=season?.episode_count;epi++)
+        {
+            seasons[season?.season_number][epi] = [false,0]
+        }
+        })
+        if (Object.keys(seasons).length === 0) 
+        {
+            return [false,0]
+        }
+        else
+        {
+            return seasons
+        }
+
+    }
+
+    function updateSubscriptions(subscriptions,purchased)
+    {
+        if (purchased['episode'])
+        {
+            subscriptions[purchased['season']][purchased['episode']] = [true,0]
+        }
+        else if (purchased['season'] || purchased['season'] === 0)
+        {
+            for (var episode in subscriptions[purchased['season']])
+            {
+                subscriptions[purchased['season']][episode] = [true,0]
+            }
+        }
+        else 
+        {
+            if (type === 'tv')
+            {
+                for (var season in subscriptions)
+                {
+                    for (var episode in subscriptions[season])
+                    {
+                        subscriptions[season][episode] = [true,0]
+                    }
+                }
+            }
+            else
+            {
+                subscriptions = [true,0];
+            }
+        }
+        return subscriptions
+    }
 
     const purchaseMovie = (e) => {
         e.preventDefault();
+        var purchased;
+        if (e.target.name)
+        {
+            purchased =  JSON.parse(e.target.name)
+        }
+        else
+        {
+            purchased = {}
+        }
         const price = e.target.value
-        console.log(price)
         if (!JSON.parse(localStorage.getItem('user'))?.public_key && !user?.public_key)
         {
           alert('Please link your ethereum account to proceed..')
@@ -38,9 +104,28 @@ function MovieScreen() {
         }
         else
         {
-          MovieContract.methods.buy_movie(user?.email,movie?.id,type,price).send({ from: (JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) })
-          .then(() => {window.alert('Purchase Successful !!')
-          window.location.reload(false);})
+          MovieContract.methods.buy_movie(user?.email,movie?.id,type,price)
+          .send({ from: (JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) })
+          .then(() => 
+          {
+              var subscriptions;
+              if (!currentSubscriptions)
+              {
+                subscriptions = initSubscriptions(purchased)
+                subscriptions = updateSubscriptions(subscriptions,purchased)
+              }
+              else
+              {
+                  subscriptions = updateSubscriptions(currentSubscriptions,purchased)
+              }
+                const key = movie_id+":"+type
+                database.ref("user_subscriptions/" + user?.uid).update({
+                    [key]: subscriptions
+                }).then(()=>{window.alert('Purchase Successful !!');
+                window.location.reload(false)
+                })
+                .catch(alert)
+          })
           .catch((err)=>{window.alert('Error : ' + err.message)})
         }
     }
@@ -69,6 +154,16 @@ function MovieScreen() {
     const fetchseasonUrl = `https://api.themoviedb.org/3/tv/${movie_id}/season/${seasonNumber}?api_key=${API_KEY}&append_to_response=videos`
     const domain = (type=='tv') ? 'TV Series' : 'Movie'
 
+    function fetchSubscriptions()
+    {
+        const key = movie_id + ':' + type
+        database.ref("user_subscriptions/" + user?.uid + '/' + key)
+        .once("value",(snapshot) => 
+        {
+            setSubscriptions(snapshot.val())
+        })
+    }
+
     useEffect(() => {
         if (type === 'tv')
         {
@@ -83,7 +178,54 @@ function MovieScreen() {
         {
             fetchSeasonData(fetchseasonUrl)
         }
-    }, [viewState])
+        fetchSubscriptions()
+    }, [viewState,currentSubscriptions])
+
+    fetchSubscriptions()
+
+    const hasPurchasedEP = function(season,episode)
+    {
+        if (currentSubscriptions)
+        {
+            return currentSubscriptions[season][episode][0];
+        }
+        return false;
+    }
+
+    const hasPurchasedSeason = function(season)
+    {
+        if (currentSubscriptions)
+        {
+            for (var episode in currentSubscriptions[season])
+            {
+                if (!currentSubscriptions[season][episode][0])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    const hasPurchasedMovie = function()
+    {
+        if (currentSubscriptions)
+        {
+            for (var season in currentSubscriptions)
+            {
+                for (var episode in currentSubscriptions[season])
+                {
+                    if (!currentSubscriptions[season][episode][0])
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        return false;
+    }
 
     const showTrailer = (e) => {
         e.preventDefault()
@@ -96,7 +238,6 @@ function MovieScreen() {
         const official_teasers = teasers?.filter((video) => {return video?.name==="Official Teaser" || video?.name==="official teaser" })
         setTrailerUrl(`https://www.youtube.com/watch?v=${official_trailers[0]?.key||trailers[0]?.key||official_teasers[0]?.key||teasers[0]?.key||movie?.videos?.results[0]?.key||default_url}`)
         setShow(true)
-        console.log(movie)
     }
 
   return (
@@ -130,8 +271,10 @@ function MovieScreen() {
             <h1 className="movie__description">
             {truncate(movie?.overview,200)}
             <div className="movie__buttons">
-                <button className="movie__button" value={movie?.number_of_episodes || 3} 
-                onClick={purchaseMovie}>Purchase : {movie?.number_of_episodes || 3} PPU</button>
+                {!hasPurchasedMovie() ? 
+                (<button className="movie__button" value={movie?.number_of_episodes || 3} 
+                onClick={purchaseMovie}>Purchase : {movie?.number_of_episodes || 3} PPU</button>) :
+                (<button className="movie__button">Play</button>)}
                 <button className="movie__button" onClick={showTrailer}>Trailer</button>
                 {movie?.seasons && <button className="movie__button" 
                 onClick={(e)=>{e.preventDefault();setViewState(1)}}>View Seasons</button>}
@@ -197,8 +340,12 @@ function MovieScreen() {
                 </h1>
         
                 <div className="season__buttons">
-                    <button className="season__button" value={season?.episode_count}
-                    onClick={purchaseMovie}>Purchase : {season?.episode_count} PPU</button>
+                {!hasPurchasedSeason(season?.season_number) ?
+                (
+                    <button className="season__button" name={'{"season":'+season?.season_number+"}"} value={season?.episode_count}
+                    onClick={purchaseMovie}>Purchase : {season?.episode_count} PPU</button>)
+                :
+                (<button className="season__button">Play</button>)}
                     <button className="season__button season__episodes" disabled>Episodes : {season?.episode_count}</button>
                     <button className="season__button"
                     onClick={(e)=> {e.preventDefault();setSeasonNumber(season?.season_number);setViewState(2)}}>View Episodes</button>
@@ -240,8 +387,12 @@ function MovieScreen() {
         
                 <div className="episode__buttons">
                 <h5 className="episode__details">
-                    <button className="episode__button episode__purchase" value={1}
-                    onClick={purchaseMovie}>Purchase : 1 PPU</button>
+                    {!hasPurchasedEP(season?.season_number,episode?.episode_number) ?
+                    (<button className="episode__button episode__purchase" 
+                    name={'{"season":'+season?.season_number+',"episode":'+episode?.episode_number+"}"} value={1}
+                    onClick={purchaseMovie}>Purchase : 1 PPU</button>) :
+                    (<button className="episode__button episode__purchase">Play</button>)
+                    }
                     <div className='episode__detail episode__rating'>Rating : {episode?.vote_average}</div>
                     <div className='episode__detail episode__stars'>Stars :<span> </span> 
                     {

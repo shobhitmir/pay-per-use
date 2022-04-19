@@ -342,7 +342,7 @@ function MovieScreen() {
             subscriptions[season][episode] = [false,0]
             database.ref("user_subscriptions/" + user?.uid).update({
                 [dbkey]: subscriptions
-            }).then(()=>{window.alert('Refund Successful !!');
+            }).then(()=>{window.alert("Refunded "+refund_tokens+" Tokens Successfully !!");
             window.location.reload(false)
             })
             .catch(alert)

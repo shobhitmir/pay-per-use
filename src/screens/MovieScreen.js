@@ -178,8 +178,7 @@ function MovieScreen() {
         {
             fetchSeasonData(fetchseasonUrl)
         }
-        fetchSubscriptions()
-    }, [viewState,currentSubscriptions])
+    }, [viewState])
 
     fetchSubscriptions()
 

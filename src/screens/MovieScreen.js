@@ -229,6 +229,10 @@ function MovieScreen() {
 
     const hasPurchasedMovie = function()
     {
+        if (type === 'movie' && currentSubscriptions)
+        {
+            return currentSubscriptions[0]
+        }
         if (currentSubscriptions)
         {
             for (var season in currentSubscriptions)
@@ -309,10 +313,14 @@ function MovieScreen() {
                 }
             }
         }
-        const subscriptions = currentSubscriptions;
-        if (episode && season)
+        var subscriptions = currentSubscriptions;
+        if (episode && (season || season===0))
         {
             subscriptions[season][episode] = [true,timeWatched,total_time];
+        }
+        else
+        {
+            subscriptions = [true,timeWatched,total_time];
         }
         const dbkey = movie?.id + ":" + type;
         database.ref("user_subscriptions/" + user?.uid).update({
@@ -322,18 +330,81 @@ function MovieScreen() {
         .catch(alert)
     }
 
+    const getMovieRefund = (e) => {
+        var subscriptions = currentSubscriptions
+        var timeleft = 0;
+        var total_time = 0;
+        var total_price = 0;
+        if (type === 'tv')
+        {
+            for (var season in currentSubscriptions)
+            {
+                for (var episode in currentSubscriptions[season])
+                {
+                    timeleft += Math.round(subscriptions[season][episode][2] || 1900) - Math.round(subscriptions[season][episode][1])
+                    total_time += (subscriptions[season][episode][2] || 1900)
+                    subscriptions[season][episode] = [false,0]
+                    total_price += 1;
+                }
+            }
+        }
+        else
+        {
+            timeleft += Math.round(subscriptions[2] || 1900) - Math.round(subscriptions[1])
+            total_time += (subscriptions[2] || 1900)
+            total_price = 3
+            subscriptions = [false,0]
+        }
+        const refund_tokens = Math.round((timeleft/total_time)*total_price)
+        MovieContract.methods.refund(refund_tokens)
+        .send({ from: (JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) })
+        .then(() => {
+            const dbkey = movie?.id + ":" + type;
+            database.ref("user_subscriptions/" + user?.uid).update({
+                [dbkey]: subscriptions
+            }).then(()=>{window.alert("Refunded "+refund_tokens+" Tokens Successfully !!");
+            window.location.reload(false)
+            })
+            .catch(alert)
+        })
+        .catch((e) => {alert(e)})
+    }
+
+    const getSeasonRefund = (e) => {
+        const info = JSON.parse(e.target.value)
+        const season = info['season']
+        const total_price = info['price']
+        const subscriptions = currentSubscriptions
+        var timeleft = 0;
+        var total_time = 0;
+        for (var key in currentSubscriptions[season])
+        {
+            timeleft += Math.round(subscriptions[season][key][2] || 1900) - Math.round(subscriptions[season][key][1])
+            total_time += (subscriptions[season][key][2] || 1900)
+            subscriptions[season][key] = [false,0]
+        }
+        const refund_tokens = Math.round((timeleft/total_time)*total_price)
+        MovieContract.methods.refund(refund_tokens)
+        .send({ from: (JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) })
+        .then(() => {
+            const dbkey = movie?.id + ":" + type;
+            database.ref("user_subscriptions/" + user?.uid).update({
+                [dbkey]: subscriptions
+            }).then(()=>{window.alert("Refunded "+refund_tokens+" Tokens Successfully !!");
+            window.location.reload(false)
+            })
+            .catch(alert)
+        })
+        .catch((e) => {alert(e)})
+    }
+
     const getEPRefund = (e) => {
         const info = JSON.parse(e.target.value)
         const season = info['season']
         const episode = info['episode']
         const subscriptions = currentSubscriptions
-        if (!subscriptions[season][episode][2])
-        {
-            window.alert("Please play movie atleast once to avail refund..")
-            return
-        }
-        const timeleft = Math.round(subscriptions[season][episode][2]) - Math.round(subscriptions[season][episode][1])
-        const total_time = Math.round(subscriptions[season][episode][2])
+        const timeleft = Math.round(subscriptions[season][episode][2] || 1900) - Math.round(subscriptions[season][episode][1])
+        const total_time = Math.round(subscriptions[season][episode][2] || 1900)
         const refund_tokens = Math.round((timeleft/total_time)*1)
         MovieContract.methods.refund(refund_tokens)
         .send({ from: (JSON.parse(localStorage.getItem('user'))?.public_key || user?.public_key) })
@@ -348,6 +419,22 @@ function MovieScreen() {
             .catch(alert)
         })
         .catch((e) => {alert(e)})
+    }
+
+
+    const moviePrice = () => {
+        if (type==='movie')
+        {
+            return 3;
+        }
+        if (movie?.seasons[0]?.season_number === 0)
+        {
+            return (movie?.number_of_episodes + movie?.seasons[0]?.episode_count)
+        }
+        else
+        {
+            return (movie?.number_of_episodes)
+        }
     }
 
   return (
@@ -387,11 +474,13 @@ function MovieScreen() {
             {truncate(movie?.overview,200)}
             <div className="movie__buttons">
                 {!hasPurchasedMovie() ? 
-                (<button className="movie__button" value={movie?.number_of_episodes || 3} 
-                onClick={purchaseMovie}>Purchase : {movie?.number_of_episodes || 3} PPU</button>) :
-                (<button className="movie__button" 
+                (<button className="movie__button" value={moviePrice()} 
+                onClick={purchaseMovie}>Purchase : {moviePrice()} PPU</button>) :
+                (<><button className="movie__button" 
                 onClick={()=>{setPlay(true);setTime(0);
-                setPlayingInfo("")}}>Play</button>)}
+                setPlayingInfo("")}}>Play</button>
+                <button className="movie__button"
+                    onClick={getMovieRefund}>Refund</button></>)}
                 <button className="movie__button" onClick={showTrailer}>Trailer</button>
                 {movie?.seasons && <button className="movie__button" 
                 onClick={(e)=>{e.preventDefault();setViewState(1)}}>View Seasons</button>}
@@ -459,8 +548,10 @@ function MovieScreen() {
                     <button className="season__button" name={'{"season":'+season?.season_number+"}"} value={season?.episode_count}
                     onClick={purchaseMovie}>Purchase : {season?.episode_count} PPU</button>)
                 :
-                (<button className="season__button" onClick={()=>{setPlay(true);setTime(0);
-                    setPlayingInfo('{"season":'+season?.season_number+"}")}}>Play</button>)}
+                (<><button className="season__button" onClick={()=>{setPlay(true);setTime(0);
+                    setPlayingInfo('{"season":'+season?.season_number+"}")}}>Play</button>
+                    <button className="season__button season__purchase" value={'{"season":'+season?.season_number+',"price":'+season?.episode_count+"}"}
+                    onClick={getSeasonRefund}>Refund</button></>)}
                     <button className="season__button season__episodes" disabled>Episodes : {season?.episode_count}</button>
                     <button className="season__button"
                     onClick={(e)=> {e.preventDefault();setSeasonNumber(season?.season_number);setViewState(2)}}>View Episodes</button>
